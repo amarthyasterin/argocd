@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: argocd
+  name: argocd-ingress
+  annotations:
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:eu-west************************************f5845
+    alb.ingress.kubernetes.io/load-balancer-name: {your-load-balancer}
+    alb.ingress.kubernetes.io/group.name: {your-load-balancer}
+    alb.ingress.kubernetes.io/tags: loadbalancer=dev-loadbalancer
+    alb.ingress.kubernetes.io/subnets: subnet-1,subnet-2
+    alb.ingress.kubernetes.io/conditions.argogrpc: |
+        [{"field":"http-header","httpHeaderConfig":{"httpHeaderName": "Content-Type", "values":["application/grpc"]}}]
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/backend-protocol: HTTPS
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+  labels:
+    app: argocd-ingress
+spec:
+  ingressClassName: alb
+  rules:
+    - host: argocd.*****.in
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: argogrpc
+              port:
+                number: 443
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: argocd-server
+              port:
+                number: 443
